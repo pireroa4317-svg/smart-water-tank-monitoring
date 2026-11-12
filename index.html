@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Water Tank Monitoring &amp; Control System</title>
+<style>
+:root{--navy:#173b63;--blue:#2367a5;--pale:#eef5fb;--line:#d5e0eb;--green:#16834b;--red:#c43d3d;--ink:#1c2937}
+*{box-sizing:border-box}body{margin:0;background:#f4f7fa;color:var(--ink);font:15px/1.5 Arial,Helvetica,sans-serif}
+header{background:linear-gradient(120deg,#173b63,#2874ad);color:white;padding:28px 18px}
+.wrap{max-width:1050px;margin:auto;padding:0 16px}
+h1{margin:0 0 6px;font-size:clamp(24px,4vw,34px)}header p{margin:0;opacity:.9}
+main{padding:22px 0 42px}.identity,.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 3px 12px #1d38500b}
+.identity{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between}.identity strong{color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+h2{font-size:19px;color:var(--navy);margin:0 0 12px}h3{font-size:16px;color:var(--navy);margin:14px 0 8px}
+button,select{font:inherit;border-radius:8px;border:1px solid #b9c9d8;padding:10px 13px;background:white;color:var(--ink)}
+button{cursor:pointer;font-weight:700}button.primary{background:var(--blue);color:white;border-color:var(--blue)}button:focus,select:focus{outline:3px solid #9ac8ef}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.metric{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf1f5}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;background:#e8eef4;font-weight:700;font-size:13px}.on{background:#e2f5e9;color:#12663a}.off{background:#f1f3f5;color:#596575}.alarm{background:#fde8e8;color:#a51f1f}
+.sensor-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.sensor{border:1px solid var(--line);padding:8px 12px;border-radius:9px;background:#f8fafc;min-width:65px;text-align:center}.sensor b{display:block;font-size:19px}
+.display-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.seven{width:112px;height:170px;background:#14202b;border-radius:12px;padding:13px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:repeat(5,1fr);gap:5px}
+.seg{background:#34404b;border-radius:5px;opacity:.45}.seg.active{background:#ff4c42;opacity:1;box-shadow:0 0 10px #ff4c4280}
+.seg.a{grid-column:1/4;grid-row:1}.seg.b{grid-column:3;grid-row:1/3}.seg.c{grid-column:3;grid-row:3/5}.seg.d{grid-column:1/4;grid-row:5}.seg.e{grid-column:1;grid-row:3/5}.seg.f{grid-column:1;grid-row:1/3}.seg.g{grid-column:1/4;grid-row:3}
+.note{background:#fff8e8;border-left:4px solid #d99a24;padding:11px 13px;border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid var(--line);padding:8px;text-align:center}th{background:var(--pale);color:var(--navy)}
+.small{color:#5c6b7a;font-size:13px}.status{font-size:23px;font-weight:800;color:var(--navy)}
+footer{text-align:center;color:#637386;padding:20px;font-size:13px}
+@media(max-width:520px){.identity{display:block}.seven{width:95px;height:145px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Smart Water Tank Monitoring &amp; Control System</h1>
+<p>Interactive digital-logic demonstration · IFT 211 – Digital Logic Design</p>
+</div></header>
+<main class="wrap">
+<section class="identity">
+<div><strong>Student:</strong> Ireroa Popo Udugbai</div>
+<div><strong>Matriculation No.:</strong> 2025/A/IT/0073</div>
+<div><strong>Department:</strong> Information Technology</div>
+</section>
+
+<div class="grid">
+<section class="panel">
+<h2>1. Set the water level</h2>
+<p>Choose a tank level to simulate the four sensor positions.</p>
+<div class="controls">
+<label for="level"><strong>Water level:</strong></label>
+<select id="level">
+<option value="0">0 – Empty / lowest level</option>
+<option value="1">1 – 25% level</option>
+<option value="2">2 – 50% level</option>
+<option value="3">3 – Full tank</option>
+</select>
+<button class="primary" id="apply">Apply level</button>
+</div>
+<h3>Sensor inputs</h3>
+<div class="sensor-row" id="sensors">
+<div class="sensor">S0<b>1</b></div><div class="sensor">S1<b>0</b></div>
+<div class="sensor">S2<b>0</b></div><div class="sensor">S3<b>0</b></div>
+</div>
+<p class="small">The sensor pattern follows the assessment truth table: the inputs build up in sequence as the tank fills.</p>
+</section>
+
+<section class="panel">
+<h2>2. Register and display</h2>
+<div class="metric"><span>Stored register state (Q1 Q0)</span><strong class="status" id="bits">00</strong></div>
+<div class="display-wrap">
+<div class="seven" aria-label="Seven segment display">
+<div class="seg a" id="seg-a"></div><div class="seg b" id="seg-b"></div>
+<div class="seg c" id="seg-c"></div><div class="seg d" id="seg-d"></div>
+<div class="seg e" id="seg-e"></div><div class="seg f" id="seg-f"></div>
+<div class="seg g" id="seg-g"></div>
+</div>
+<div>
+<div class="small">Displayed level</div><div class="status" id="digit">0</div>
+<div class="small">Seven-segment output</div>
+</div>
+</div>
+</section>
+
+<section class="panel">
+<h2>3. Pump and tank status</h2>
+<div class="metric"><span>Water pump</span><strong id="pump" class="pill on">ON</strong></div>
+<div class="metric"><span>Full indicator</span><strong id="full" class="pill off">OFF</strong></div>
+<div class="metric"><span>Overflow alarm</span><strong id="alarm" class="pill off">OFF</strong></div>
+<p class="small">Pump logic: PUMP = NOT(Q1 AND Q0), implemented by a two-input NAND gate.</p>
+</section>
+
+<section class="panel">
+<h2>4. Clock and overflow counter</h2>
+<p>The counter advances only while the tank is full. Give it three clock pulses to trigger the alarm.</p>
+<div class="metric"><span>Clock pulses while full</span><strong id="count">0 / 3</strong></div>
+<div class="metric"><span>Counter state</span><strong id="counter">00</strong></div>
+<div class="controls" style="margin-top:12px">
+<button class="primary" id="clock">Send clock pulse</button>
+<button id="reset">Manual reset</button>
+</div>
+<p class="small" id="message" aria-live="polite">System ready. Select a water level to begin.</p>
+</section>
+</div>
+
+<section class="panel">
+<h2>5. Logic reference</h2>
+<table>
+<thead><tr><th>Level</th><th>Q1</th><th>Q0</th><th>Pump</th><th>Full</th><th>Display</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>0</td><td>0</td><td>ON</td><td>OFF</td><td>0</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>ON</td><td>OFF</td><td>1</td></tr>
+<tr><td>2</td><td>1</td><td>0</td><td>ON</td><td>OFF</td><td>2</td></tr>
+<tr><td>3</td><td>1</td><td>1</td><td>OFF</td><td>ON</td><td>3</td></tr>
+</tbody></table>
+<h3>Seven-segment Boolean expressions</h3>
+<table>
+<thead><tr><th>Output</th><th>Expression</th><th>Gate / connection</th></tr></thead>
+<tbody>
+<tr><td>a, d</td><td>Q1 + Q0′</td><td>OR</td></tr>
+<tr><td>c</td><td>Q1′ + Q0</td><td>OR</td></tr>
+<tr><td>e</td><td>Q0′</td><td>NOT</td></tr>
+<tr><td>f</td><td>Q1′ · Q0′</td><td>AND</td></tr>
+<tr><td>b</td><td>1</td><td>Logic HIGH</td></tr>
+<tr><td>g</td><td>Q1</td><td>Direct output</td></tr>
+</tbody></table>
+</section>
+
+<section class="panel">
+<h2>6. Demonstration steps</h2>
+<ol>
+<li>Apply level 0, then 1, then 2. The pump should remain ON.</li>
+<li>Apply level 3. The display should show 3, the pump should turn OFF, and FULL should turn ON.</li>
+<li>While level 3 remains selected, send three clock pulses. The alarm should turn ON at the third pulse.</li>
+<li>Press Manual reset. The counter returns to 00 and the alarm switches OFF.</li>
+</ol>
+<div class="note"><strong>Project note:</strong> This is a browser-based functional simulation of the behaviour described in the assessment. It demonstrates the stated input/output logic; it is not a physical circuit or a verified gate-level schematic.</div>
+</section>
+</main>
+<footer>IFT 211 · Digital Logic Design · Smart Water Tank Monitoring &amp; Control System</footer>
+<script>
+const $=id=>document.getElementById(id);
+let level=0, pulses=0;
+const patterns=[
+ {a:1,b:1,c:1,d:1,e:1,f:1,g:0},
+ {a:0,b:1,c:1,d:0,e:0,f:0,g:0},
+ {a:1,b:1,c:0,d:1,e:1,f:0,g:1},
+ {a:1,b:1,c:1,d:1,e:0,f:0,g:1}
+];
+function badge(id,on,yes,no){const el=$(id);el.textContent=on?yes:no;el.className='pill '+(on?'on':'off')}
+function render(){
+ const q1=(level>>1)&1,q0=level&1;
+ $('bits').textContent=`${q1}${q0}`;$('digit').textContent=String(level);
+ const sensor=[1,level>=1?1:0,level>=2?1:0,level>=3?1:0];
+ $('sensors').innerHTML=sensor.map((v,i)=>`<div class="sensor">S${i}<b>${v}</b></div>`).join('');
+ const pat=patterns[level];
+ Object.keys(pat).forEach(k=>$('seg-'+k).classList.toggle('active',!!pat[k]));
+ const full=level===3,pump=!(q1&&q0),alarm=full&&pulses>=3;
+ badge('pump',pump,'ON','OFF');badge('full',full,'ON','OFF');badge('alarm',alarm,'ON','OFF');
+ if(alarm)$('alarm').className='pill alarm';
+ $('count').textContent=`${pulses} / 3`;$('counter').textContent=pulses.toString(2).padStart(2,'0');
+}
+function applyLevel(){const next=Number($('level').value);if(next!==3&&level===3){pulses=0;$('message').textContent='Tank is no longer full; overflow counter cleared.';}level=next;if(level!==3)pulses=0;else $('message').textContent='Tank is full. Send clock pulses to test the overflow timer.';render();}
+$('apply').addEventListener('click',applyLevel);
+$('level').addEventListener('change',applyLevel);
+$('clock').addEventListener('click',()=>{if(level!==3){$('message').textContent='Clock pulse ignored for overflow timing: the tank must be full.';return;}pulses=Math.min(3,pulses+1);$('message').textContent=pulses>=3?'Three full-state clock pulses detected. Overflow alarm activated.':`Clock pulse registered (${pulses} of 3).`;render();});
+$('reset').addEventListener('click',()=>{pulses=0;$('message').textContent='Manual reset completed. Counter is 00 and alarm is OFF.';render();});
+render();
+</script>
+</body>
+</html>
